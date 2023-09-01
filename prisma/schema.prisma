@@ -1,0 +1,200 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model banners {
+  id          Int     @id
+  image_id    Int
+  tenant_id   Int?
+  url         String?
+  order       Int
+  title       String?
+  description String?
+  href_target String?
+  is_video    Boolean
+  video_url   String?
+  image_url   String?
+}
+
+model brokers {
+  id                         Int       @id
+  tenant_id                  Int?
+  name                       String
+  avatar                     String?
+  creci                      String
+  biography                  String?
+  job_position               String?
+  birthday                   DateTime? @db.Date
+  city_name                  String?
+  state_abbrev               String?
+  is_broker                  Boolean
+  email                      String?
+  primary_phone_number       String?
+  alt_phone_number           String?
+  primary_phone_has_whatsapp Boolean?
+  alt_phone_has_whatsapp     Boolean?
+  twitter_url                String?
+  facebook_url               String?
+  linkedin_url               String?
+  skype_url                  String?
+  instagram_url              String?
+  personal_website_url       String?
+  show_personal_website      Boolean
+  testimonials               String[]
+}
+
+model condominiums {
+  id                         Int      @id
+  type                       String
+  cover_image_id             Int?
+  tenant_id                  Int?
+  name                       String
+  featured                   Boolean
+  launch                     Boolean
+  gated                      Boolean
+  construction_percentage    Int?
+  brick_percentage           Int?
+  structure_percentage       Int?
+  foundation_percentage      Int?
+  installations_percentage   Int?
+  landscaping_percentage     Int?
+  project_percentage         Int?
+  ground_leveling_percentage Int?
+  latitude                   Decimal? @db.Decimal
+  longitude                  Decimal? @db.Decimal
+  notes                      String?
+  incorporation_record       String?
+  neighborhood_id            Int
+  city_id                    Int
+  state_id                   Int
+  address_zipcode            String?
+  address_street             String
+  address_neighborhood       String
+  address_number             String
+  city_name                  String
+  state_name                 String
+  status                     String
+  delivery_month             Int?
+  delivery_year              Int?
+  administering_company_name String?
+  building_company_name      String?
+  real_state_developer_name  String?
+  architect_name             String?
+  landscaper_name            String?
+  decorator_name             String?
+  cover_image                String?
+  available_properties       Int
+  infrastructures            String[]
+  labels                     String[]
+  videos                     Json
+  images                     Json
+  blueprints                 Json
+  ar_tour                    String[]
+  created_at                 DateTime @db.Timestamptz(3)
+  updated_at                 DateTime @db.Timestamptz(3)
+}
+
+model properties {
+  id                          Int       @id
+  broker_id                   Int
+  condominium_id              Int?
+  state_id                    Int
+  city_id                     Int
+  neighborhood_id             Int
+  tenant_id                   Int?
+  identifier_code             String    @unique(map: "properties_unique_identifier_code_idx")
+  contracts                   String[]
+  type                        String
+  active                      Boolean   @default(false)
+  subtype                     String
+  notes                       String?
+  building_type               String?
+  delivery_year               Int?
+  delivery_month              Int?
+  furnished                   Int
+  suites                      Int
+  bathrooms                   Int
+  bedrooms                    Int
+  garages                     Int
+  financeable                 Int
+  has_exclusivity             Boolean
+  total_area                  Decimal?  @db.Decimal(30, 2)
+  private_area                Decimal?  @db.Decimal(30, 2)
+  useful_area                 Decimal?  @db.Decimal(30, 2)
+  measurement_type            String
+  floor_types                 String[]
+  terrain_width_front         Decimal?  @db.Decimal(30, 2)
+  terrain_width_back          Decimal?  @db.Decimal(30, 2)
+  terrain_length_left         Decimal?  @db.Decimal(30, 2)
+  terrain_length_right        Decimal?  @db.Decimal(30, 2)
+  terrain_area                Decimal?  @db.Decimal(30, 2)
+  created_at                  DateTime? @db.Timestamptz(3)
+  building_status             String?
+  show_condominium_value      Boolean
+  condominium_value           Decimal?  @db.Decimal
+  show_sale_value             Boolean
+  sale_value                  Decimal?  @db.Decimal
+  show_rental_value           Boolean
+  rental_value                Decimal?  @db.Decimal
+  show_seasonal_value         Boolean
+  seasonal_value              Decimal?  @db.Decimal
+  iptu_frequency              String?
+  iptu_value_exempt           String?
+  show_iptu_value             Boolean
+  iptu_value                  Decimal?  @db.Decimal
+  season_calendar             Json
+  rural_activities            String[]
+  rural_headquarters          Int?
+  arable_area                 Decimal?  @db.Decimal(30, 2)
+  allowed_guests              Int?
+  meta_title                  String?
+  meta_description            String?
+  fire_insurance_value        Decimal?  @db.Decimal
+  cleaning_fee_value          Decimal?  @db.Decimal
+  position                    String?
+  solar_positions             String[]
+  sea_distance                Int?
+  accept_exchange             Boolean
+  latitude                    Decimal?  @db.Decimal
+  longitude                   Decimal?  @db.Decimal
+  occupancy_status            String
+  featured                    Boolean
+  feature_until               DateTime? @db.Timestamptz(3)
+  condominium_type            String?
+  condominium_name            String?
+  gated_condominium           Boolean?
+  show_full_address           Boolean
+  show_address_state          Boolean
+  show_address_city           Boolean
+  show_address_neighborhood   Boolean
+  show_address_street         Boolean
+  show_address_reference      Boolean
+  show_address_number         Boolean
+  show_address_floor          Boolean
+  address_state               String
+  address_city                String
+  address_neighborhood        String
+  address_street              String
+  address_zipcode             String?
+  address_reference           String?
+  address_number              String
+  address_floor               Int?
+  geoposition_visibility      Int
+  ad_title                    String?
+  ad_description              String?
+  labels                      String[]
+  surety_insurance            Boolean?
+  property_infrastructures    String[]
+  condominium_infrastructures String[]
+  updated_at                  DateTime  @db.Timestamptz(3)
+  validated_at                DateTime  @db.Timestamptz(3)
+  videos                      Json
+  blueprints                  Json
+  images                      Json
+  ar_tour                     String[]
+}
