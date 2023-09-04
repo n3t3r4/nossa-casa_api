@@ -8,10 +8,23 @@ const app = express();
 app.use(cors());
 
 app.get("/properties", async (req: Request, res: Response) => {
+  const minPrice = Number(req.query.minPrice);
+  const maxPrice = Number(req.query.maxPrice);
   const limit = Number(req.query.ipp);
   const page = Number(req.query.page);
+  const bedrooms = Number(req.query.bedrooms);
+  const baths = Number(req.query.baths);
+  const subType = String(req.query.subtype);
+
+  const subTypeUpperCase = subType.charAt(0).toUpperCase() + subType.slice(1);
 
   const data = await prisma.properties.findMany({
+    where: {
+      sale_value: { gte: minPrice, lte: maxPrice },
+      bedrooms: bedrooms,
+      bathrooms: baths,
+      subtype: subTypeUpperCase,
+    },
     take: limit,
     skip: page * limit - limit,
     orderBy: { updated_at: "desc" },
