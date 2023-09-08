@@ -15,6 +15,11 @@ app.get("/properties", async (req: Request, res: Response) => {
   const bedrooms = req.query.bedrooms ? Number(req.query.bedrooms) : undefined;
   const baths = req.query.baths ? Number(req.query.baths) : undefined;
   const minArea = req.query.minArea ? String(req.query.minArea) : undefined;
+
+  const exclusive = req.query.exclusive
+    ? Boolean(req.query.exclusive)
+    : Boolean(false);
+
   const withVideo = req.query.withVideo
     ? Boolean(req.query.withVideo)
     : Boolean(false);
@@ -36,14 +41,14 @@ app.get("/properties", async (req: Request, res: Response) => {
         String(req.query.subtype).slice(1)
     : undefined;
 
-  console.log(withVideo ? "sim" : "nao");
-
   const data = await prisma.properties.findMany({
     where: {
       sale_value: { gte: minPrice, lte: maxPrice },
       bedrooms: bedrooms,
       bathrooms: baths,
       total_area: { gte: minArea },
+
+      ...(exclusive === true ? { has_exclusivity: true } : undefined),
 
       ...(withVideo === true ? { videos: { not: [] } } : undefined),
 
