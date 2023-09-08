@@ -15,6 +15,7 @@ app.get("/properties", async (req: Request, res: Response) => {
   const bedrooms = req.query.bedrooms ? Number(req.query.bedrooms) : undefined;
   const baths = req.query.baths ? Number(req.query.baths) : undefined;
   const minArea = req.query.minArea ? String(req.query.minArea) : undefined;
+  const search = req.query.search ? String(req.query.search) : undefined;
 
   const exclusive = req.query.exclusive
     ? Boolean(req.query.exclusive)
@@ -43,6 +44,16 @@ app.get("/properties", async (req: Request, res: Response) => {
 
   const data = await prisma.properties.findMany({
     where: {
+      ...(search !== undefined
+        ? {
+            OR: [
+              { identifier_code: { contains: search, mode: "insensitive" } },
+
+              { condominium_name: { contains: search, mode: "insensitive" } },
+            ],
+          }
+        : undefined),
+
       sale_value: { gte: minPrice, lte: maxPrice },
       bedrooms: bedrooms,
       bathrooms: baths,
