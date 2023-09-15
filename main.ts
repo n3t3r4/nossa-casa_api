@@ -16,6 +16,7 @@ app.get("/properties", async (req: Request, res: Response) => {
   const baths = req.query.baths ? Number(req.query.baths) : undefined;
   const minArea = req.query.minArea ? String(req.query.minArea) : undefined;
   const search = req.query.search ? String(req.query.search) : undefined;
+  const status = req.query.status ? String(req.query.status) : undefined;
 
   const exclusive = req.query.exclusive
     ? Boolean(req.query.exclusive)
@@ -57,6 +58,7 @@ app.get("/properties", async (req: Request, res: Response) => {
       sale_value: { gte: minPrice, lte: maxPrice },
       bedrooms: bedrooms,
       bathrooms: baths,
+      building_status: { contains: status, mode: "insensitive" },
       total_area: { gte: minArea },
 
       ...(exclusive === true ? { has_exclusivity: true } : undefined),
