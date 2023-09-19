@@ -17,14 +17,18 @@ app.get("/properties", async (req: Request, res: Response) => {
   const minArea = req.query.minArea ? String(req.query.minArea) : undefined;
   const search = req.query.search ? String(req.query.search) : undefined;
   const status = req.query.status ? String(req.query.status) : undefined;
+  const furnished = req.query.furnished
+    ? Number(req.query.furnished)
+    : undefined;
 
   const exclusive = req.query.exclusive
     ? Boolean(req.query.exclusive)
     : Boolean(false);
 
-  const withVideo = req.query.withVideo
-    ? Boolean(req.query.withVideo)
-    : Boolean(false);
+  const withVideo =
+    req.query.withVideo === "true"
+      ? Boolean(req.query.withVideo)
+      : Boolean(false);
 
   const neighborhood = req.query.neighborhood
     ? String(req.query.neighborhood).split(",").length > 1
@@ -58,6 +62,7 @@ app.get("/properties", async (req: Request, res: Response) => {
       sale_value: { gte: minPrice, lte: maxPrice },
       bedrooms: bedrooms,
       bathrooms: baths,
+      furnished: furnished,
       building_status: { contains: status, mode: "insensitive" },
       total_area: { gte: minArea },
 
