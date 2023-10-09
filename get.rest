@@ -1,1 +1,1 @@
-GET http://localhost:8080/properties/1890
+GET http://localhost:8080/properties?exclusive=true

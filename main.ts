@@ -14,7 +14,9 @@ app.get("/properties", async (req: Request, res: Response) => {
   const page = req.query.page ? Number(req.query.page) : 1;
   const bedrooms = req.query.bedrooms ? Number(req.query.bedrooms) : undefined;
   const baths = req.query.baths ? Number(req.query.baths) : undefined;
+  const garages = req.query.garages ? Number(req.query.garages) : undefined;
   const minArea = req.query.minArea ? String(req.query.minArea) : undefined;
+  const maxArea = req.query.maxArea ? String(req.query.maxArea) : undefined;
   const search = req.query.search ? String(req.query.search) : undefined;
   const status = req.query.status ? String(req.query.status) : undefined;
   const furnished = req.query.furnished
@@ -47,6 +49,41 @@ app.get("/properties", async (req: Request, res: Response) => {
         String(req.query.subtype).slice(1)
     : undefined;
 
+  const numberResults = await prisma.properties.count({
+    where: {
+      ...(search !== undefined
+        ? {
+            OR: [
+              { identifier_code: { contains: search, mode: "insensitive" } },
+
+              { condominium_name: { contains: search, mode: "insensitive" } },
+            ],
+          }
+        : undefined),
+
+      sale_value: { gte: minPrice, lte: maxPrice },
+      bedrooms: bedrooms,
+      bathrooms: baths,
+      garages: garages,
+      furnished: furnished,
+      building_status: { contains: status, mode: "insensitive" },
+      total_area: { gt: minArea, lt: maxArea },
+
+      ...(exclusive === true ? { has_exclusivity: true } : undefined),
+
+      ...(withVideo === true ? { videos: { not: [] } } : undefined),
+
+      ...(neighborhood instanceof Array
+        ? { neighborhood_id: { in: neighborhood } }
+        : { neighborhood_id: neighborhood }),
+
+      ...(subtype instanceof Array
+        ? {
+            subtype: { in: subtype },
+          }
+        : { subtype: subtype }),
+    },
+  });
   const data = await prisma.properties.findMany({
     where: {
       ...(search !== undefined
@@ -62,9 +99,10 @@ app.get("/properties", async (req: Request, res: Response) => {
       sale_value: { gte: minPrice, lte: maxPrice },
       bedrooms: bedrooms,
       bathrooms: baths,
+      garages: garages,
       furnished: furnished,
       building_status: { contains: status, mode: "insensitive" },
-      total_area: { gte: minArea },
+      total_area: { gt: minArea, lt: maxArea },
 
       ...(exclusive === true ? { has_exclusivity: true } : undefined),
 
@@ -86,7 +124,7 @@ app.get("/properties", async (req: Request, res: Response) => {
   });
 
   res.status(200);
-  res.json({ properties: data });
+  res.json({ properties: data, numberResults: numberResults });
 });
 
 app.get("/properties/:id", async (req: Request, res: Response) => {
@@ -111,6 +149,11 @@ app.get("/condominiums", async (req: Request, res: Response) => {
 
   res.status(200);
   res.json({ condominiums: data });
+});
+
+app.get("/", (req: Request, res: Response) => {
+  res.json({ sucess: true });
+  res.status(200);
 });
 
 app.listen(8080, () => {
