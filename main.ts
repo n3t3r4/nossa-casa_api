@@ -49,6 +49,8 @@ app.get("/properties", async (req: Request, res: Response) => {
         String(req.query.subtype).slice(1)
     : undefined;
 
+  const orderBy = req.query.orderBy ? Number(req.query.orderBy) : 0;
+
   const numberResults = await prisma.properties.count({
     where: {
       ...(search !== undefined
@@ -120,7 +122,14 @@ app.get("/properties", async (req: Request, res: Response) => {
     },
     take: limit,
     skip: page * limit - limit,
-    orderBy: { updated_at: "desc" },
+    orderBy: {
+      ...(orderBy === 0 ? { updated_at: "desc" } : null),
+      ...(orderBy === 1 ? { sale_value: "desc" } : null),
+      ...(orderBy === 2 ? { sale_value: "asc" } : null),
+      ...(orderBy === 3
+        ? { total_area: { sort: "desc", nulls: "last" } }
+        : null),
+    },
   });
 
   res.status(200);
@@ -134,21 +143,49 @@ app.get("/properties/:id", async (req: Request, res: Response) => {
     where: { identifier_code: id },
   });
 
+  const relativeProperties = await prisma.properties.findMany({
+    where: {
+      subtype: data?.subtype,
+      neighborhood_id: data?.neighborhood_id,
+      sale_value: { gte: Number(data?.sale_value) - 200000 },
+    },
+    take: 3,
+  });
+
   res.status(200);
-  res.json(data);
+  res.json({ data: data, relativeProperties: relativeProperties });
 });
 
 app.get("/condominiums", async (req: Request, res: Response) => {
-  const limit = Number(req.query.ipp);
-  const page = Number(req.query.page);
+  const limit = req.query.ipp ? Number(req.query.ipp) : 10;
+  const page = req.query.page ? Number(req.query.page) : 1;
 
   const data = await prisma.condominiums.findMany({
+    where: {
+      launch: true,
+    },
     take: limit,
     skip: page * limit - limit,
+    orderBy: { created_at: "desc" },
   });
 
   res.status(200);
   res.json({ condominiums: data });
+});
+
+app.get("/condominiums/:id", async (req: Request, res: Response) => {
+  const id = req.params.id;
+
+  const data = await prisma.condominiums.findUnique({
+    where: { id: Number(id) },
+  });
+
+  const units = await prisma.properties.findMany({
+    where: { condominium_name: { contains: data?.name, mode: "insensitive" } },
+  });
+
+  res.status(200);
+  res.json({ condominium: data, avaible_units: units });
 });
 
 app.get("/", (req: Request, res: Response) => {
