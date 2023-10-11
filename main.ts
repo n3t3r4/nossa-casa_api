@@ -51,141 +51,166 @@ app.get("/properties", async (req: Request, res: Response) => {
 
   const orderBy = req.query.orderBy ? Number(req.query.orderBy) : 0;
 
-  const numberResults = await prisma.properties.count({
-    where: {
-      ...(search !== undefined
-        ? {
-            OR: [
-              { identifier_code: { contains: search, mode: "insensitive" } },
+  try {
+    const numberResults = await prisma.properties.count({
+      where: {
+        ...(search !== undefined
+          ? {
+              OR: [
+                { identifier_code: { contains: search, mode: "insensitive" } },
 
-              { condominium_name: { contains: search, mode: "insensitive" } },
-            ],
-          }
-        : undefined),
+                { condominium_name: { contains: search, mode: "insensitive" } },
+              ],
+            }
+          : undefined),
 
-      sale_value: { gte: minPrice, lte: maxPrice },
-      bedrooms: bedrooms,
-      bathrooms: baths,
-      garages: garages,
-      furnished: furnished,
-      building_status: { contains: status, mode: "insensitive" },
-      total_area: { gt: minArea, lt: maxArea },
+        sale_value: { gte: minPrice, lte: maxPrice },
+        bedrooms: bedrooms,
+        bathrooms: baths,
+        garages: garages,
+        furnished: furnished,
+        building_status: { contains: status, mode: "insensitive" },
+        total_area: { gt: minArea, lt: maxArea },
 
-      ...(exclusive === true ? { has_exclusivity: true } : undefined),
+        ...(exclusive === true ? { has_exclusivity: true } : undefined),
 
-      ...(withVideo === true ? { videos: { not: [] } } : undefined),
+        ...(withVideo === true ? { videos: { not: [] } } : undefined),
 
-      ...(neighborhood instanceof Array
-        ? { neighborhood_id: { in: neighborhood } }
-        : { neighborhood_id: neighborhood }),
+        ...(neighborhood instanceof Array
+          ? { neighborhood_id: { in: neighborhood } }
+          : { neighborhood_id: neighborhood }),
 
-      ...(subtype instanceof Array
-        ? {
-            subtype: { in: subtype },
-          }
-        : { subtype: subtype }),
-    },
-  });
-  const data = await prisma.properties.findMany({
-    where: {
-      ...(search !== undefined
-        ? {
-            OR: [
-              { identifier_code: { contains: search, mode: "insensitive" } },
+        ...(subtype instanceof Array
+          ? {
+              subtype: { in: subtype },
+            }
+          : { subtype: subtype }),
+      },
+    });
+    const data = await prisma.properties.findMany({
+      where: {
+        ...(search !== undefined
+          ? {
+              OR: [
+                { identifier_code: { contains: search, mode: "insensitive" } },
 
-              { condominium_name: { contains: search, mode: "insensitive" } },
-            ],
-          }
-        : undefined),
+                { condominium_name: { contains: search, mode: "insensitive" } },
+              ],
+            }
+          : undefined),
 
-      sale_value: { gte: minPrice, lte: maxPrice },
-      bedrooms: bedrooms,
-      bathrooms: baths,
-      garages: garages,
-      furnished: furnished,
-      building_status: { contains: status, mode: "insensitive" },
-      total_area: { gt: minArea, lt: maxArea },
+        sale_value: { gte: minPrice, lte: maxPrice },
+        bedrooms: bedrooms,
+        bathrooms: baths,
+        garages: garages,
+        furnished: furnished,
+        building_status: { contains: status, mode: "insensitive" },
+        total_area: { gt: minArea, lt: maxArea },
 
-      ...(exclusive === true ? { has_exclusivity: true } : undefined),
+        ...(exclusive === true ? { has_exclusivity: true } : undefined),
 
-      ...(withVideo === true ? { videos: { not: [] } } : undefined),
+        ...(withVideo === true ? { videos: { not: [] } } : undefined),
 
-      ...(neighborhood instanceof Array
-        ? { neighborhood_id: { in: neighborhood } }
-        : { neighborhood_id: neighborhood }),
+        ...(neighborhood instanceof Array
+          ? { neighborhood_id: { in: neighborhood } }
+          : { neighborhood_id: neighborhood }),
 
-      ...(subtype instanceof Array
-        ? {
-            subtype: { in: subtype },
-          }
-        : { subtype: subtype }),
-    },
-    take: limit,
-    skip: page * limit - limit,
-    orderBy: {
-      ...(orderBy === 0 ? { updated_at: "desc" } : null),
-      ...(orderBy === 1 ? { sale_value: "desc" } : null),
-      ...(orderBy === 2 ? { sale_value: "asc" } : null),
-      ...(orderBy === 3
-        ? { total_area: { sort: "desc", nulls: "last" } }
-        : null),
-    },
-  });
+        ...(subtype instanceof Array
+          ? {
+              subtype: { in: subtype },
+            }
+          : { subtype: subtype }),
+      },
+      take: limit,
+      skip: page * limit - limit,
+      orderBy: {
+        ...(orderBy === 0 ? { updated_at: "desc" } : null),
+        ...(orderBy === 1 ? { sale_value: "desc" } : null),
+        ...(orderBy === 2 ? { sale_value: "asc" } : null),
+        ...(orderBy === 3
+          ? { total_area: { sort: "desc", nulls: "last" } }
+          : null),
+      },
+    });
 
-  res.status(200);
-  res.json({ properties: data, numberResults: numberResults });
+    res.status(200);
+    res.json({ properties: data, numberResults: numberResults });
+  } catch (e) {
+    console.log(e);
+    res.status(500);
+    res.json({ message: "Error" });
+  }
 });
 
 app.get("/properties/:id", async (req: Request, res: Response) => {
   const id = req.params.id;
 
-  const data = await prisma.properties.findUnique({
-    where: { identifier_code: id },
-  });
+  try {
+    const data = await prisma.properties.findUnique({
+      where: { identifier_code: id },
+    });
 
-  const relativeProperties = await prisma.properties.findMany({
-    where: {
-      subtype: data?.subtype,
-      neighborhood_id: data?.neighborhood_id,
-      sale_value: { gte: Number(data?.sale_value) - 200000 },
-    },
-    take: 3,
-  });
+    const relativeProperties = await prisma.properties.findMany({
+      where: {
+        subtype: data?.subtype,
+        neighborhood_id: data?.neighborhood_id,
+        sale_value: { gte: Number(data?.sale_value) - 200000 },
+      },
+      take: 6,
+    });
 
-  res.status(200);
-  res.json({ data: data, relativeProperties: relativeProperties });
+    res.status(200);
+    res.json({ data: data, relativeProperties: relativeProperties });
+  } catch (e) {
+    console.log(e);
+    res.status(500);
+    res.json({ message: "Error" });
+  }
 });
 
 app.get("/condominiums", async (req: Request, res: Response) => {
   const limit = req.query.ipp ? Number(req.query.ipp) : 10;
   const page = req.query.page ? Number(req.query.page) : 1;
 
-  const data = await prisma.condominiums.findMany({
-    where: {
-      launch: true,
-    },
-    take: limit,
-    skip: page * limit - limit,
-    orderBy: { created_at: "desc" },
-  });
+  try {
+    const data = await prisma.condominiums.findMany({
+      where: {
+        launch: true,
+      },
+      take: limit,
+      skip: page * limit - limit,
+      orderBy: { created_at: "desc" },
+    });
 
-  res.status(200);
-  res.json({ condominiums: data });
+    res.status(200);
+    res.json({ condominiums: data });
+  } catch (e) {
+    console.log(e);
+    res.status(500);
+    res.json({ message: "Error" });
+  }
 });
 
 app.get("/condominiums/:id", async (req: Request, res: Response) => {
   const id = req.params.id;
+  try {
+    let data = await prisma.condominiums.findUnique({
+      where: { id: Number(id) },
+    });
 
-  const data = await prisma.condominiums.findUnique({
-    where: { id: Number(id) },
-  });
+    let units = await prisma.properties.findMany({
+      where: {
+        condominium_name: { contains: data?.name, mode: "insensitive" },
+      },
+    });
 
-  const units = await prisma.properties.findMany({
-    where: { condominium_name: { contains: data?.name, mode: "insensitive" } },
-  });
-
-  res.status(200);
-  res.json({ condominium: data, avaible_units: units });
+    res.status(200);
+    res.json({ condominium: data, avaible_units: units });
+  } catch (e) {
+    console.log(e);
+    res.status(500);
+    res.json({ message: "Error" });
+  }
 });
 
 app.get("/", (req: Request, res: Response) => {
