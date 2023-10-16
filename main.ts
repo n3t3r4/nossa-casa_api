@@ -182,8 +182,14 @@ app.get("/condominiums", async (req: Request, res: Response) => {
       orderBy: { created_at: "desc" },
     });
 
+    const numberResults = await prisma.condominiums.count({
+      where: {
+        launch: true,
+      },
+    });
+
     res.status(200);
-    res.json({ condominiums: data });
+    res.json({ condominiums: data, numberResults: numberResults });
   } catch (e) {
     console.log(e);
     res.status(500);
