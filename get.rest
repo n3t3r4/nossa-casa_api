@@ -1,1 +1,1 @@
-GET http://localhost:8080/properties?exclusive=true
+GET http://localhost:8080/properties?maxArea=2394879238
