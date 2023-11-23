@@ -12,9 +12,7 @@ app.get("/properties", async (req: Request, res: Response) => {
   const maxPrice = req.query.maxPrice ? Number(req.query.maxPrice) : 10000000;
   const limit = req.query.ipp ? Number(req.query.ipp) : 12;
   const page = req.query.page ? Number(req.query.page) : 1;
-  const bedrooms = req.query.bedrooms ? Number(req.query.bedrooms) : undefined;
-  const baths = req.query.baths ? Number(req.query.baths) : undefined;
-  const garages = req.query.garages ? Number(req.query.garages) : undefined;
+
   const minArea = req.query.minArea ? String(req.query.minArea) : undefined;
   const maxArea = req.query.maxArea ? String(req.query.maxArea) : undefined;
   const search = req.query.search ? String(req.query.search) : undefined;
@@ -31,6 +29,30 @@ app.get("/properties", async (req: Request, res: Response) => {
     req.query.withVideo === "true"
       ? Boolean(req.query.withVideo)
       : Boolean(false);
+
+  const bedrooms = req.query.bedrooms
+    ? String(req.query.bedrooms).split(",").length > 1
+      ? String(req.query.bedrooms)
+          .split(",")
+          .map((item) => Number(`${item}`))
+      : Number(`${req.query.bedrooms}`)
+    : undefined;
+
+  const baths = req.query.baths
+    ? String(req.query.baths).split(",").length > 1
+      ? String(req.query.baths)
+          .split(",")
+          .map((item) => Number(`${item}`))
+      : Number(`${req.query.baths}`)
+    : undefined;
+
+  const garages = req.query.garages
+    ? String(req.query.garages).split(",").length > 1
+      ? String(req.query.garages)
+          .split(",")
+          .map((item) => Number(`${item}`))
+      : Number(`${req.query.garages}`)
+    : undefined;
 
   const neighborhood = req.query.neighborhood
     ? String(req.query.neighborhood).split(",").length > 1
@@ -65,9 +87,24 @@ app.get("/properties", async (req: Request, res: Response) => {
           : undefined),
 
         sale_value: { gte: minPrice, lte: maxPrice },
-        bedrooms: { gte: bedrooms },
-        bathrooms: { gte: baths },
-        garages: { gte: garages },
+
+        ...(bedrooms instanceof Array
+          ? { bedrooms: { in: bedrooms } }
+          : bedrooms === 5
+          ? { bedrooms: { gte: bedrooms } }
+          : { bedrooms: bedrooms }),
+
+        ...(baths instanceof Array
+          ? { bathrooms: { in: baths } }
+          : baths === 5
+          ? { bathrooms: { gte: baths } }
+          : { bathrooms: baths }),
+
+        ...(garages instanceof Array
+          ? { garages: { in: garages } }
+          : garages === 5
+          ? { garages: { gte: garages } }
+          : { garages: garages }),
         furnished: furnished,
         building_status: { contains: status, mode: "insensitive" },
         total_area: { gt: minArea, lt: maxArea },
@@ -100,9 +137,24 @@ app.get("/properties", async (req: Request, res: Response) => {
           : undefined),
 
         sale_value: { gte: minPrice, lte: maxPrice },
-        bedrooms: { gte: bedrooms },
-        bathrooms: { gte: baths },
-        garages: { gte: garages },
+
+        ...(bedrooms instanceof Array
+          ? { bedrooms: { in: bedrooms } }
+          : bedrooms === 5
+          ? { bedrooms: { gte: bedrooms } }
+          : { bedrooms: bedrooms }),
+
+        ...(baths instanceof Array
+          ? { bathrooms: { in: baths } }
+          : baths === 5
+          ? { bathrooms: { gte: baths } }
+          : { bathrooms: baths }),
+
+        ...(garages instanceof Array
+          ? { garages: { in: garages } }
+          : garages === 5
+          ? { garages: { gte: garages } }
+          : { garages: garages }),
         furnished: furnished,
         building_status: { contains: status, mode: "insensitive" },
         total_area: { gt: minArea, lt: maxArea },
