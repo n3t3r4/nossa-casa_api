@@ -85,7 +85,7 @@ app.get("/properties", async (req: Request, res: Response) => {
               ],
             }
           : undefined),
-
+        active: true,
         sale_value: { gte: minPrice, lte: maxPrice },
 
         ...(bedrooms instanceof Array
@@ -135,7 +135,7 @@ app.get("/properties", async (req: Request, res: Response) => {
               ],
             }
           : undefined),
-
+        active: true,
         sale_value: { gte: minPrice, lte: maxPrice },
 
         ...(bedrooms instanceof Array
